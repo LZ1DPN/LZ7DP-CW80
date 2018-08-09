@@ -22,7 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // Include the library code
 #include <SPI.h>
-//#include <Wire.h>
 #include <rotary.h>
 #include <Adafruit_SSD1306.h>
 #define OLED_RESET 5   //12
@@ -43,7 +42,7 @@ unsigned long cwTimeout = 0;     //keyer var - dead operator control
 #define CW_KEY (6)   // KEY output pin - in Q7 transistor colector (+5V when keyer down for RF signal modulation) (in Minima to enable sidetone generator on)
 #define FBUTTON (A0)       // tuning step freq CHANGE from 1Hz to 1MHz step for single rotary encoder possition
 //#define ANALOG_KEYER (A1)  // KEYER input - for analog straight key - like Farhan's minima style.
-#define DIG_KEYER (A1)      // digital straight key input
+#define DIG_KEYER (8)      // digital straight key input
 #define BTNDEC (A2)        // BAND CHANGE BUTTON from 1,8 to 29 MHz - 11 bands
 char inTx = 0;     // trx in transmit mode temp var
 char keyDown = 1;   // keyer down temp vat
@@ -73,8 +72,7 @@ int  hertzPosition = 0;
 String freq; // string to hold the frequency
 
 // buttons temp var
-int BTNdecodeON = 0;
-int keyerON = 0;   
+int BTNdecodeON = 0;   
 int BTNinc = 1; // set number of default band minus 1
 
 // start variable setup
@@ -314,53 +312,8 @@ nonzero cwTimeout denotes that we are in cw transmit mode.
 */
 
 void checkCW(){
-  keyerON = digitalRead(DIG_KEYER);
-  if ((keyDown == 0) && (keyerON == LOW)){
-    //switch to transmit mode if we are not already in it
-    if (inTx == 0){
-      //put the TX_RX line to transmit
-      digitalWrite(TX_RX, HIGH);
-      AD9833setFrequency((rx-rxof), SQUARE);     // Set AD9833 to frequency and selected wave type.
-    }
-    inTx = 1;
-    keyDown = 1;
-    digitalWrite(CW_KEY, HIGH); //start the side-tone
-  }
-
-  //reset the timer as long as the key is down
-  if (keyDown == 1){
-    AD9833setFrequency((rx-rxof), SQUARE);     // Set AD9833 to frequency and selected wave type.
-    cwTimeout = CW_TIMEOUT + millis();
-  }
-
-  //if we have a keyup
-  if ((keyDown == 1) && (keyerON == HIGH)){
-     keyDown = 0;
-     inTx = 0; 
-     digitalWrite(CW_KEY, LOW);  // stop the side-tone
-     digitalWrite(TX_RX, LOW);
-	   AD9833setFrequency((rx+freqIF+rxRIT-rxof), SQUARE);     // Set AD9833 to frequency and selected wave type.
-     cwTimeout = millis() + CW_TIMEOUT;
-  }
-
-  //if we have keyuup for a longish time while in cw rx mode
-  if ((inTx == 1) && (cwTimeout < millis())){
-     //move the radio back to receive
-	  digitalWrite(CW_KEY, LOW);
-    digitalWrite(TX_RX, LOW);
-	  AD9833setFrequency((rx+freqIF+rxRIT-rxof), SQUARE);     // Set AD9833 to frequency and selected wave type.
-    inTx = 0;
-    cwTimeout = 0;
-  }
-}
-
-
-/*
-//old keyer
-   
-  void checkCW(){
   pinMode(TX_RX, OUTPUT);
-  if (keyDown == 0 && analogRead(DIG_KEYER) < 50){
+  if (keyDown == 0 && digitalRead(DIG_KEYER) == LOW){
     //switch to transmit mode if we are not already in it
     if (inTx == 0){
       //put the TX_RX line to transmit
@@ -379,7 +332,50 @@ void checkCW(){
   }
 
   //if we have a keyup
-  if (keyDown == 1 && analogRead(DIG_KEYER) > 150){
+  if (keyDown == 1 && digitalRead(DIG_KEYER) == HIGH){
+     keyDown = 0;
+     inTx = 0; 
+     digitalWrite(CW_KEY, 0);  // stop the side-tone
+     digitalWrite(TX_RX, 0);
+	 AD9833setFrequency((rx+freqIF+rxRIT-rxof), SQUARE);     // Set AD9833 to frequency and selected wave type.
+     cwTimeout = millis() + CW_TIMEOUT;
+  }
+
+  //if we have keyuup for a longish time while in cw rx mode
+  if (inTx == 1 && cwTimeout < millis()){
+     //move the radio back to receive
+	digitalWrite(CW_KEY, 0);
+    digitalWrite(TX_RX, 0);
+	AD9833setFrequency((rx+freqIF+rxRIT-rxof), SQUARE);     // Set AD9833 to frequency and selected wave type.
+    inTx = 0;
+    cwTimeout = 0;
+  }
+}
+
+/* old keyer
+ *  
+  void checkCW(){
+  pinMode(TX_RX, OUTPUT);
+  if (keyDown == 0 && analogRead(ANALOG_KEYER) < 50){
+    //switch to transmit mode if we are not already in it
+    if (inTx == 0){
+      //put the TX_RX line to transmit
+      digitalWrite(TX_RX, 1);
+      AD9833setFrequency((rx-rxof), SQUARE);     // Set AD9833 to frequency and selected wave type.
+    }
+    inTx = 1;
+    keyDown = 1;
+    digitalWrite(CW_KEY, 1); //start the side-tone
+  }
+
+  //reset the timer as long as the key is down
+  if (keyDown == 1){
+    AD9833setFrequency((rx-rxof), SQUARE);     // Set AD9833 to frequency and selected wave type.
+    cwTimeout = CW_TIMEOUT + millis();
+  }
+
+  //if we have a keyup
+  if (keyDown == 1 && analogRead(ANALOG_KEYER) > 150){
      keyDown = 0;
      inTx = 0; 
      digitalWrite(CW_KEY, 0);  // stop the side-tone
