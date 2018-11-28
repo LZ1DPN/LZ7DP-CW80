@@ -1,0 +1,27 @@
+case MODE_USB:
+            bfo = ifreq - xfo + usb;
+
+
+case MODE_USB:
+            vfo = freq += usb;  
+
+freq += ifreq;    (freq + if)
+    si5351.set_freq(freq, 0, SI5351_CLK0);
+
+ifreq = filter freq
+
+
+usb = + 2400 
+lsb = - 2400
+
+xfo = 0
+
+=====================================
+
+cristal filter at 10 MHz
+
+if (vfo > 10000000UL)
+ 	opfreq=vfo - bfo;    // USB
+ 
+else
+	opfreq= bfo - vfo ; // LSB
