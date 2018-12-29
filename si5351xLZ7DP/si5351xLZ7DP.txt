@@ -28,8 +28,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 // Include the library code
+//#include <Wire.h>
+//#include <SPI.h>
 #include <si5351.h>
 Si5351 si5351;
+//#include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <rotary.h>
 #define OLED_RESET 5
@@ -130,46 +133,48 @@ void checkCW(){
 // start variable SETUP
 
 void setup() {
+
+//Wire.begin();
  
 // Start serial and initialize the Si5351
-Serial.begin(115200);
+  Serial.begin(115200);
 
 // rotary
-PCICR |= (1 << PCIE2);
-PCMSK2 |= (1 << PCINT18) | (1 << PCINT19);
-sei();
+  PCICR |= (1 << PCIE2);
+  PCMSK2 |= (1 << PCINT18) | (1 << PCINT19);
+  sei();
   
 // new
-//initialize the Si5351
-Serial.println("*Initialize Si5351\n");
-si5351.init(SI5351_CRYSTAL_LOAD_8PF, 25000000L, cal); 
+  //initialize the Si5351
+  Serial.println("*Initialize Si5351\n");
+  si5351.init(SI5351_CRYSTAL_LOAD_8PF, 25000000L, cal); 
   
-//If you're using a 27Mhz crystal, put in 27000000 instead of 0
-// 0 is the default crystal frequency of 25Mhz.
+  //If you're using a 27Mhz crystal, put in 27000000 instead of 0
+  // 0 is the default crystal frequency of 25Mhz.
 
-si5351.set_pll(SI5351_PLL_FIXED, SI5351_PLLA);
-si5351.set_pll(SI5351_PLL_FIXED, SI5351_PLLB);
-Serial.println("*Fix PLL\n");
-si5351.output_enable(SI5351_CLK0, 0);
-si5351.output_enable(SI5351_CLK1, 1);
-si5351.output_enable(SI5351_CLK2, 0);
+  si5351.set_pll(SI5351_PLL_FIXED, SI5351_PLLA);
+  si5351.set_pll(SI5351_PLL_FIXED, SI5351_PLLB);
+  Serial.println("*Fix PLL\n");
+  si5351.output_enable(SI5351_CLK0, 0);
+  si5351.output_enable(SI5351_CLK1, 1);
+  si5351.output_enable(SI5351_CLK2, 0);
  
-Serial.println("*Enable PLL Output\n");
-// Set CLK1 to output the starting "vfo" frequency as set above by vfo = ?
-// Set CLK1 to output vfo + if +/- offset = rx vfo frequency	
-si5351.set_freq((((rxif-rx)+rxRIT)*100LL), SI5351_CLK1);
-// Set CLK0 to output txo vfo frequency
+  Serial.println("*Enable PLL Output\n");
+  // Set CLK1 to output the starting "vfo" frequency as set above by vfo = ?
+  // Set CLK1 to output vfo + if +/- offset = rx vfo frequency	
+  si5351.set_freq((((rxif-rx)+rxRIT)*100LL), SI5351_CLK1);
+  // Set CLK0 to output txo vfo frequency
 //  si5351.set_freq((1000000L), SI5351_CLK0);
 //  si5351.output_enable(SI5351_CLK0, 0);
 //  si5351.output_enable(SI5351_CLK2, 0);
-//  Set CLK2 to output bfo frequency
+ // Set CLK2 to output bfo frequency
 //  si5351.set_freq((rxbfo*100LL) , SI5351_CLK2);
-Serial.println("*Si5351 ON\n");
+  Serial.println("*Si5351 ON\n");
 
-// Set CLK levels
-si5351.drive_strength(SI5351_CLK0,SI5351_DRIVE_2MA); //you can set this to 2MA, 4MA, 6MA or 8MA
-si5351.drive_strength(SI5351_CLK1,SI5351_DRIVE_2MA); //be careful though - measure into 50ohms
-si5351.drive_strength(SI5351_CLK2,SI5351_DRIVE_2MA); //
+  // Set CLK levels
+  si5351.drive_strength(SI5351_CLK0,SI5351_DRIVE_2MA); //you can set this to 2MA, 4MA, 6MA or 8MA
+  si5351.drive_strength(SI5351_CLK1,SI5351_DRIVE_2MA); //be careful though - measure into 50ohms
+  si5351.drive_strength(SI5351_CLK2,SI5351_DRIVE_2MA); //
 // new
   
 //set up the pins in/out and logic levels
@@ -189,17 +194,17 @@ pinMode(FBUTTON,INPUT); // Connect to a button that goes to GND on push - rotary
 digitalWrite(FBUTTON,HIGH);  //level
 
 // Initialize the Serial port so that we can use it for debugging
-Serial.begin(115200);
-Serial.println("Start VFO ver 10.0 cw 2.0");
+  Serial.begin(115200);
+  Serial.println("Start VFO ver 10.0 cw 2.0");
 
-    // by default, we'll generate the high voltage from the 3.3v line internally! (neat!)
-    display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C address 0x3C (for oled 128x32)
+  // by default, we'll generate the high voltage from the 3.3v line internally! (neat!)
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C address 0x3C (for oled 128x32)
   
-    // Show image buffer on the display hardware.
-	// Since the buffer is intialized with an Adafruit splashscreen
-	// internally, this will display the splashscreen.
+  // Show image buffer on the display hardware.
+  // Since the buffer is intialized with an Adafruit splashscreen
+  // internally, this will display the splashscreen.
 
-	// text display tests
+  // text display tests
 	display.clearDisplay();	
 	display.setTextSize(2);
 	display.setTextColor(WHITE);
@@ -210,7 +215,8 @@ Serial.println("Start VFO ver 10.0 cw 2.0");
 	display.print("St:");display.print(hertz);
 	display.setCursor(64,16);
 	display.print("rit:");display.print(rxRIT);
-	display.display(); 
+	display.display();
+  
 }
 
 ///// START LOOP - MAIN LOOP
@@ -220,15 +226,15 @@ void loop() {
 	checkBTNdecode(); 	// BAND change
 	
 // freq change 
-    if ((rx != rx2) || (RITon == 1)){
+  if ((rx != rx2) || (RITon == 1)){
   	  showFreq();
       sendFrequency(rx);
       rx2 = rx;
-    }
+      }
 
 //  step freq change + RIT ON/OFF  
-buttonstate = digitalRead(FBUTTON);
-    if(buttonstate == LOW) {
+  buttonstate = digitalRead(FBUTTON);
+  if(buttonstate == LOW) {
         setincrement();        
     };
 
@@ -242,20 +248,20 @@ buttonstate = digitalRead(FBUTTON);
 
 ISR(PCINT2_vect) {
   unsigned char result = r.process();
-	if (result) {  
-		if (RITon==0){
-			if (result == DIR_CW){rx=rx+increment;}
-			else {rx=rx-increment;}
-		}
-		if (RITon==1){
-			if (result == DIR_CW){
-			  rxRIT=rxRIT+50;
-			}
-			else {
-			  rxRIT=rxRIT-50;
-			}
-	    } 
+if (result) {  
+	if (RITon==0){
+		if (result == DIR_CW){rx=rx+increment;}
+		else {rx=rx-increment;}
 	}
+	if (RITon==1){
+		if (result == DIR_CW){
+		  rxRIT=rxRIT+50;
+		  }
+		else {
+		  rxRIT=rxRIT-50;
+	 	  }
+  } 
+}
 }
 
 // new
@@ -264,27 +270,27 @@ void sendFrequency(double frequency) {
     //VFO CLK1
 	si5351.set_freq((((rxif-rx)+rxRIT)*100LL), SI5351_CLK1);
 	//BFO Set CLK2 to output bfo frequency
-//  si5351.set_freq((rxbfo*100LL), SI5351_CLK2);
-//	Serial.println(frequency);   // for serial console debuging
+//    si5351.set_freq((rxbfo*100LL), SI5351_CLK2);
+	Serial.println(frequency);   // for serial console debuging
 }
-
 // new
+
 // step increments for rotary encoder button
 void setincrement(){
-	if(increment == 0){increment = 1; hertz = "1Hz"; hertzPosition=0;RITon=0;} 
-	else if(increment == 1){increment = 10; hertz = "10Hz"; hertzPosition=0;RITon=0;}
-	else if(increment == 10){increment = 50; hertz = "50Hz"; hertzPosition=0;RITon=0;}
-	else if (increment == 50){increment = 100;  hertz = "100Hz"; hertzPosition=0;RITon=0;}
-	else if (increment == 100){increment = 500; hertz="500Hz"; hertzPosition=0;RITon=0;}
-	else if (increment == 500){increment = 1000; hertz="1Khz"; hertzPosition=0;RITon=0;}
-	else if (increment == 1000){increment = 2500; hertz="2.5Khz"; hertzPosition=0;RITon=0;}
-	else if (increment == 2500){increment = 5000; hertz="5Khz"; hertzPosition=0;RITon=0;}
-	else if (increment == 5000){increment = 10000; hertz="10Khz"; hertzPosition=0;RITon=0;}
-	else if (increment == 10000){increment = 100000; hertz="100Khz"; hertzPosition=0;RITon=0;}
-	else if (increment == 100000){increment = 1000000; hertz="1Mhz"; hertzPosition=0;RITon=0;} 
-	else{increment = 0; hertz = "ritON"; hertzPosition=0; RITon=1;};  
-	showFreq();
-	delay(150); // Adjust this delay to speed up/slow down the button menu scroll speed.
+  if(increment == 0){increment = 1; hertz = "1Hz"; hertzPosition=0;RITon=0;} 
+  else if(increment == 1){increment = 10; hertz = "10Hz"; hertzPosition=0;RITon=0;}
+  else if(increment == 10){increment = 50; hertz = "50Hz"; hertzPosition=0;RITon=0;}
+  else if (increment == 50){increment = 100;  hertz = "100Hz"; hertzPosition=0;RITon=0;}
+  else if (increment == 100){increment = 500; hertz="500Hz"; hertzPosition=0;RITon=0;}
+  else if (increment == 500){increment = 1000; hertz="1Khz"; hertzPosition=0;RITon=0;}
+  else if (increment == 1000){increment = 2500; hertz="2.5Khz"; hertzPosition=0;RITon=0;}
+  else if (increment == 2500){increment = 5000; hertz="5Khz"; hertzPosition=0;RITon=0;}
+  else if (increment == 5000){increment = 10000; hertz="10Khz"; hertzPosition=0;RITon=0;}
+  else if (increment == 10000){increment = 100000; hertz="100Khz"; hertzPosition=0;RITon=0;}
+  else if (increment == 100000){increment = 1000000; hertz="1Mhz"; hertzPosition=0;RITon=0;} 
+  else{increment = 0; hertz = "ritON"; hertzPosition=0; RITon=1;};  
+  showFreq();
+  delay(150); // Adjust this delay to speed up/slow down the button menu scroll speed.
 }
 
 // oled display functions
@@ -307,51 +313,51 @@ void showFreq(){
 //  BAND CHANGE !!! band plan - change if need 
 void checkBTNdecode(){
   
-    BTNdecodeON = digitalRead(BTNDEC);    
+BTNdecodeON = digitalRead(BTNDEC);    
     if(BTNdecodeON == LOW){
-        BTNinc = BTNinc + 1;
+         BTNinc = BTNinc + 1;
          
-        if(BTNinc > 11){
+         if(BTNinc > 11){
               BTNinc = 1;
               }
               
-		switch (BTNinc) {
-			  case 1:
-				rx=1810000;
-				break;
-			  case 2:
-				rx=3500000;
-				break;
-			  case 3:
-				rx=5250000;
-				break;
-			  case 4:
-				rx=7000000;
-				break;
-			  case 5:
-				rx=10100000;
-				break;
-			  case 6:
-				rx=14000000;
-				break;
-			  case 7:
-				rx=18068000;
-				break;    
-			  case 8:
-				rx=21000000;
-				break;    
-			  case 9:
-				rx=24890000;
-				break;    
-			  case 10:
-				rx=28000000;
-				break;
-			  case 11:
-				rx=29100000;
-				break;    	  
-			  default:             
-				break;
-			}         
+    switch (BTNinc) {
+          case 1:
+            rx=1810000;
+            break;
+          case 2:
+            rx=3500000;
+            break;
+          case 3:
+            rx=5250000;
+            break;
+          case 4:
+            rx=7000000;
+            break;
+          case 5:
+            rx=10100000;
+            break;
+          case 6:
+            rx=14000000;
+            break;
+          case 7:
+            rx=18068000;
+            break;    
+          case 8:
+            rx=21000000;
+            break;    
+          case 9:
+            rx=24890000;
+            break;    
+          case 10:
+            rx=28000000;
+            break;
+          case 11:
+            rx=29100000;
+            break;    	  
+          default:             
+            break;
+        }         
         delay(150);     
     }
 }
